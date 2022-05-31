@@ -1,23 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
+import Cart from "./Cart";
+import Loader from "./Loader";
+import ProductList from "./ProductList";
+import { useProducts } from "./services/ProductService";
 
 function App() {
+  const [filter, setFilter] = useState("");
+  const { loading, data: products, reFetch } = useProducts(filter);
+  const [cartProducts, setCartProducts] = useState([]);
+
+  const addItemToCart = product => {
+    let currentProduct = cartProducts.find(item => item.id === product.id);
+    let quantity = 1;
+    if (currentProduct) {
+      quantity = currentProduct.quantity + 1;
+    }
+    setCartProducts([
+      ...cartProducts.filter(item => item.id !== product.id),
+      { ...product, quantity }
+    ]);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div id="product-list">
+        {loading ? (
+          <Loader />
+        ) : (
+          <ProductList products={products} addToCart={addItemToCart} />
+        )}
+      </div>
+      <button onClick={reFetch}>Refetch Products</button>
+      <input type="text" onBlur={e => setFilter(e.target.value)} />
+      <br />
+      <hr />
+      <Cart products={cartProducts} />
     </div>
   );
 }
